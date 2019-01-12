@@ -31,16 +31,26 @@ class WordbookSpider(scrapy.Spider):
         for l in ll:
             wa = l.css('a::attr(href)').extract()
             for w in wa:
-                next_page = response.urljoin(w)
+                next_page = response.urljoin(w) + "?page=1"
                 yield scrapy.Request(next_page, callback=self.parsewds)
 
     # 避免一次性操作失败,可以分文件存储或者每一次查找到结果后存储到临时文件,最后统一处理格式
     def parsewds(self, response):
+        print(response.url)
         ll = response.xpath('/html/body/div[3]/div/div[1]/div[2]/div/table')
-        for l in ll:
-            wl = l.xpath("//td[@class='span2']/strong//text()").extract()
-            for w in wl:
-                self.searchword(w)
+        wl = ll.xpath("//td[@class='span2']/strong//text()").extract()
+        for w in wl:
+            # print(w)
+            # self.searchword(w)
+            # print(pl)
+            pass
+        str(response.url).strip()
+        # if len(wl) > 1:
+        #     mt = response.meta()
+        #     mt['page'] += 1
+        #     print("mt", mt)
+        #     next_page = response.urljoin(w) + "?page=" + str(mt['page'])
+        #     yield scrapy.Request(next_page, callback=self.parsewds, meta=mt)
 
     def searchword(self, w):
         resp = requests.get(self.makesearchpath(w)).json(encoding="utf-8")
@@ -63,7 +73,7 @@ class WordbookSpider(scrapy.Spider):
         return path
 
     def close(self, spider, reason):
-        self.wl.sort(key=lambda w: w['word'])
+        self.wl.sort(key=lambda w: w['word'].lower())
         fp = open(self.file, 'w', encoding='utf-8')
         json.dump(self.wl, fp, ensure_ascii=False, indent=4)
         print("failed words", self.failedwds)
@@ -75,3 +85,5 @@ class WordbookSpider(scrapy.Spider):
 #     print(res)
 #     file2 = open('shanbei_wordbook34.json', 'w')
 #     json.dump(res, file2, ensure_ascii=False, indent=4)
+
+
