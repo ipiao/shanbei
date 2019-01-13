@@ -38,7 +38,7 @@ class WordbookSpider(scrapy.Spider):
         tmpfile = "shanbei_wordbook_" + self.book + "_tmp.json"
         self.tmp_fp = open(tmpfile, 'a', encoding='utf-8')
 
-        successfile = "shanbei_wordbook_" + self.book + "_success.json"
+        successfile = "shanbei_wordbook_" + self.book + "_success.txt"
         self.succ_fp = open(successfile, 'a', encoding='utf-8')
 
         # self.successws = self.succ_fp.readlines()
