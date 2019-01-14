@@ -20,9 +20,13 @@ class WordbookSpider(scrapy.Spider):
         "http://124.207.82.166:8008"
     ]
     proxyManagers = []
+    localManager = None
 
     def randproxy(self):
-        return random.choice(self.proxyManagers)
+        if len(self.proxyManagers) > 0:
+            return random.choice(self.proxyManagers)
+        else:
+            return self.localManager
 
     def start_requests(self):
         url = "http://www.shanbay.com/wordbook/"
@@ -43,10 +47,11 @@ class WordbookSpider(scrapy.Spider):
 
         # self.successws = self.succ_fp.readlines()
 
+        self.localManager = urllib3.PoolManager(num_pools=5)
         for proxy in self.proxys:
             try:
-                if proxy == "":
-                    pool = urllib3.PoolManager(num_pools=5)
+                if proxy == "" or proxy == "http://127.0.0.1" or "http://localhost":
+                    pool = self.localManager
                 else:
                     pool = urllib3.ProxyManager(proxy_url=proxy, num_pools=5)
             except Exception as e:
