@@ -4,6 +4,9 @@ import time
 import json
 import urllib3
 import random
+from os import path
+import os
+import urllib.parse as ps
 
 
 class WordbookSpider(scrapy.Spider):
@@ -125,6 +128,11 @@ class WordbookSpider(scrapy.Spider):
         fp.close()
         super().close(spider, reason)
 
+    def download_audio(self, url, destpath):
+        fp = open(destpath, 'wb')
+        r = self.randproxy().request('GET', url)
+        fp.write(r.data)
+        fp.close()
 
 # def reloadjson():
 #     file = open('../shanbei_wordbook34_tmp.json', 'r', encoding='utf-8')
@@ -134,3 +142,57 @@ class WordbookSpider(scrapy.Spider):
 #     json.dump(res, file2, ensure_ascii=False, indent=4)
 
 
+def downloadSounds(book=34):
+    pool = urllib3.PoolManager()
+    rootdir = "../.."
+    filename = path.join(rootdir, 'shanbei_wordbook_{}.json'.format(book))
+    file = open(filename, 'r', encoding='utf-8')
+    data = json.load(file)
+
+    ukdir = path.join(rootdir, 'audio/{}/uk'.format(book))
+    usdir = path.join(rootdir, 'audio/{}/us'.format(book))
+    if not path.exists(ukdir):
+        os.mkdir(ukdir)
+    if not path.exists(usdir):
+        os.mkdir(usdir)
+    for d in data:
+        audio = d['audio_addresses']
+        if audio:
+            uk = audio['uk']
+            us = audio['us']
+            if uk:
+                audio['uk_local'] = []
+                for url in uk:
+                    nm = path.basename(ps.unquote(url))
+                    print(nm)
+                    try:
+                        fn = path.join(ukdir, nm)
+                        # fp = open(fn, 'wb')
+                        # r = pool.request('GET', url)
+                        # fp.write(r.data)
+                        audio['uk_local'].append(path.relpath(fn, rootdir))
+                    finally:
+                        # fp.close()
+                        pass
+            if us:
+                for url in us:
+                    audio['us_local'] = []
+                    nm = path.basename(ps.unquote(url))
+                    print(nm)
+                    try:
+                        fn = path.join(usdir, nm)
+                        fp = open(fn, 'wb')
+                        r = pool.request('GET', url)
+                        fp.write(r.data)
+                        audio['us_local'].append(path.relpath(fn, rootdir))
+                    finally:
+                        fp.close()
+
+    nfilename = path.join(rootdir, 'shanbei_wordbook_{}_local.json'.format(book))
+    nfp = open(nfilename, 'w', encoding='utf-8')
+    json.dump(data, nfp, ensure_ascii=False, indent=4)
+    nfp.close()
+
+
+if __name__ == '__main__':
+    downloadSounds(34)
