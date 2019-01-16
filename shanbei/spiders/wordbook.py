@@ -142,7 +142,7 @@ class WordbookSpider(scrapy.Spider):
 #     json.dump(res, file2, ensure_ascii=False, indent=4)
 
 
-def downloadSounds(book=34):
+def download_audios(book=34):
     pool = urllib3.PoolManager()
     rootdir = "../.."
     filename = path.join(rootdir, 'shanbei_wordbook_{}.json'.format(book))
@@ -195,4 +195,4 @@ def downloadSounds(book=34):
 
 
 if __name__ == '__main__':
-    downloadSounds(34)
+    download_audios(34)
