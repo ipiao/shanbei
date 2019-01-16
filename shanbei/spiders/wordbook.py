@@ -152,9 +152,9 @@ def downloadSounds(book=34):
     ukdir = path.join(rootdir, 'audio/{}/uk'.format(book))
     usdir = path.join(rootdir, 'audio/{}/us'.format(book))
     if not path.exists(ukdir):
-        os.mkdir(ukdir)
+        os.makedirs(ukdir)
     if not path.exists(usdir):
-        os.mkdir(usdir)
+        os.makedirs(usdir)
     for d in data:
         audio = d['audio_addresses']
         if audio:
@@ -164,23 +164,23 @@ def downloadSounds(book=34):
                 audio['uk_local'] = []
                 for url in uk:
                     nm = path.basename(ps.unquote(url))
+                    host = urllib3.util.parse_url(url).hostname
                     print(nm)
                     try:
-                        fn = path.join(ukdir, nm)
-                        # fp = open(fn, 'wb')
-                        # r = pool.request('GET', url)
-                        # fp.write(r.data)
+                        fn = path.join(ukdir, host + "_" + nm)
+                        fp = open(fn, 'wb')
+                        r = pool.request('GET', url)
+                        fp.write(r.data)
                         audio['uk_local'].append(path.relpath(fn, rootdir))
                     finally:
-                        # fp.close()
-                        pass
+                        fp.close()
             if us:
+                audio['us_local'] = []
                 for url in us:
-                    audio['us_local'] = []
                     nm = path.basename(ps.unquote(url))
-                    print(nm)
+                    host = urllib3.util.parse_url(url).hostname
                     try:
-                        fn = path.join(usdir, nm)
+                        fn = path.join(usdir, host + "_" + nm)
                         fp = open(fn, 'wb')
                         r = pool.request('GET', url)
                         fp.write(r.data)
